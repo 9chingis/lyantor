@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Служба Доставки MAX</title>
+  <title>Доставка Лянтор</title>
   
-  <!-- Официальная библиотека MAX Bridge для работы внутри мессенджера MAX -->
+  <!-- Библиотека MAX Bridge -->
   <script src="https://st.max.ru/js/max-web-app.js"></script>
 
   <style>
@@ -52,7 +52,6 @@
       max-width: 440px;
     }
 
-    /* Верхняя панель */
     .header {
       display: flex;
       justify-content: space-between;
@@ -98,7 +97,6 @@
       margin-bottom: 10px;
     }
 
-    /* Выбор зон */
     .zones {
       display: flex;
       flex-direction: column;
@@ -125,7 +123,6 @@
       color: var(--accent);
     }
 
-    /* Поля ввода */
     textarea, input[type="tel"] {
       width: 100%;
       padding: 10px 12px;
@@ -143,7 +140,6 @@
       resize: vertical;
     }
 
-    /* Кнопки */
     .btn {
       width: 100%;
       padding: 12px;
@@ -161,7 +157,6 @@
     .btn-accent { background: var(--accent); color: #fff; }
     .btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); margin-top: 8px; }
 
-    /* Карточки заказов */
     .order-card {
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -217,7 +212,6 @@
       font-size: 14px;
     }
 
-    /* Нижняя навигация */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -256,18 +250,15 @@
 
 <div class="app">
 
-  <!-- ВЕРХНЯЯ СТРОКА С РОЛЬЮ -->
+  <!-- ВЕРХНЯЯ СТРОКА -->
   <div class="header">
     <span class="role-tag" id="role-badge">Клиент</span>
     <button class="role-btn" onclick="toggleRoleAuth()">Сменить роль (PIN)</button>
   </div>
 
-  <!-- ============================================== -->
-  <!-- 1. ИНТЕРФЕЙС КЛИЕНТА                           -->
-  <!-- ============================================== -->
+  <!-- 1. ИНТЕРФЕЙС КЛИЕНТА -->
   <div id="client-screen">
     
-    <!-- Шаг 1: Форма оформления -->
     <div id="tab-new-order">
       <div id="view-create">
         <div class="card">
@@ -293,14 +284,14 @@
 
         <div class="card">
           <div class="title">2. Что забрать / купить</div>
-          <textarea id="inp-pickup" placeholder="Название магазина, точный адрес или список необходимых покупок"></textarea>
+          <textarea id="inp-pickup" placeholder="Название магазина или список покупок"></textarea>
         </div>
 
         <div class="card">
           <div class="title">3. Куда доставить</div>
-          <textarea id="inp-dest" placeholder="Улица, дом, подъезд, этаж, кв./офис"></textarea>
+          <textarea id="inp-dest" placeholder="Улица, дом, подъезд, квартира"></textarea>
           <div style="margin-top: 8px;">
-            <label style="font-size: 12px; color: var(--text-muted);">Ваш телефон для связи:</label>
+            <label style="font-size: 12px; color: var(--text-muted);">Ваш номер телефона:</label>
             <input type="tel" id="inp-phone" placeholder="+7 (___) ___-__-__">
           </div>
         </div>
@@ -308,31 +299,30 @@
         <button class="btn btn-primary" onclick="showSummary()">Проверить заказ</button>
       </div>
 
-      <!-- Экран проверки заказа -->
+      <!-- Экран проверки -->
       <div id="view-summary" class="hidden">
         <div class="card">
           <div class="title">Проверка данных заказа</div>
           <div class="order-info"><b>Зона:</b> <span id="s-zone"></span></div>
           <div class="order-info"><b>Откуда / Что:</b> <span id="s-pickup"></span></div>
           <div class="order-info"><b>Куда:</b> <span id="s-dest"></span></div>
-          <div class="order-info"><b>Ваш телефон:</b> <span id="s-phone"></span></div>
+          <div class="order-info"><b>Телефон:</b> <span id="s-phone"></span></div>
           <div style="border-top: 1px dashed var(--border); margin-top: 8px; padding-top: 8px; font-weight: bold; display: flex; justify-content: space-between;">
             <span>Стоимость курьера:</span>
             <span id="s-price" style="color: var(--accent);">0 ₽</span>
           </div>
         </div>
-        <button class="btn btn-accent" onclick="confirmAndSaveOrder()">  Подтвердить заказ</button>
+        <button class="btn btn-accent" onclick="confirmAndSaveOrder()">  Подтвердить и отправить</button>
         <button class="btn btn-secondary" onclick="backToForm()">  Изменить данные</button>
       </div>
     </div>
 
-    <!-- Вкладка: Мои заказы (ЛК Клиента) -->
+    <!-- История заказов клиента -->
     <div id="tab-client-history" class="hidden">
       <div class="title">История ваших заказов</div>
       <div id="client-history-list"></div>
     </div>
 
-    <!-- Меню Клиента -->
     <nav class="bottom-nav">
       <button class="nav-btn active" id="btn-client-tab1" onclick="switchClientTab('new')">
         <span> </span><span>Новый заказ</span>
@@ -343,18 +333,13 @@
     </nav>
   </div>
 
-  <!-- ============================================== -->
-  <!-- 2. ИНТЕРФЕЙС КУРЬЕРА                           -->
-  <!-- ============================================== -->
+  <!-- 2. ИНТЕРФЕЙС КУРЬЕРА -->
   <div id="courier-screen" class="hidden">
-    
-    <!-- Вкладка: Свободные и активные заказы -->
     <div id="tab-courier-feed">
       <div class="title">Лента доступных заказов</div>
       <div id="courier-feed-list"></div>
     </div>
 
-    <!-- Вкладка: Моя смена и история -->
     <div id="tab-courier-history" class="hidden">
       <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -367,10 +352,9 @@
       <div id="courier-done-list"></div>
     </div>
 
-    <!-- Меню Курьера -->
     <nav class="bottom-nav">
       <button class="nav-btn active" id="btn-courier-tab1" onclick="switchCourierTab('feed')">
-        <span> </span><span>В работе / Лента</span>
+        <span> </span><span>В работе</span>
       </button>
       <button class="nav-btn" id="btn-courier-tab2" onclick="switchCourierTab('history')">
         <span> </span><span>Моя смена</span>
@@ -381,9 +365,6 @@
 </div>
 
 <script>
-  // ==========================================
-  // БАЗА ДАННЫХ И СОСТОЯНИЕ
-  // ==========================================
   function getOrders() {
     const raw = localStorage.getItem('delivery_orders');
     return raw ? JSON.parse(raw) : [];
@@ -398,9 +379,6 @@
   let currentRole = 'client';
   let courierPhone = localStorage.getItem('courier_phone') || '+7 (900) 111-22-33';
 
-  // ==========================================
-  // РОЛИ И АВТОРИЗАЦИЯ
-  // ==========================================
   function setRole(role) {
     currentRole = role;
     const badge = document.getElementById('role-badge');
@@ -426,7 +404,7 @@
   function toggleRoleAuth() {
     const code = prompt('Введите PIN сотрудника:\n(Курьер: 1122, Клиент: 0000)');
     if (code === '1122') {
-      const phoneInput = prompt('Укажите контактный номер курьера (будет виден клиентам):', courierPhone);
+      const phoneInput = prompt('Контактный телефон курьера для клиентов:', courierPhone);
       if (phoneInput) {
         courierPhone = phoneInput;
         localStorage.setItem('courier_phone', courierPhone);
@@ -435,13 +413,10 @@
     } else if (code === '0000') {
       setRole('client');
     } else if (code !== null) {
-      alert('Неверный PIN-код');
+      alert('Неверный PIN');
     }
   }
 
-  // ==========================================
-  // ЛОГИКА КЛИЕНТА
-  // ==========================================
   function selectZone(zone, price, el) {
     document.querySelectorAll('.zone-row').forEach(z => z.classList.remove('active'));
     el.classList.add('active');
@@ -456,7 +431,7 @@
 
     if (!pickup) return alert('Укажите, что купить или откуда забрать.');
     if (!dest) return alert('Укажите адрес доставки.');
-    if (!phone) return alert('Укажите ваш номер телефона.');
+    if (!phone) return alert('Укажите ваш телефон.');
 
     document.getElementById('s-zone').textContent = currentZone;
     document.getElementById('s-pickup').textContent = pickup;
@@ -473,7 +448,7 @@
     document.getElementById('view-create').classList.remove('hidden');
   }
 
-  // Подтверждение заказа клиентом
+  // ПОДТВЕРЖДЕНИЕ И ПЕРЕДАЧА В БОТА MAX
   function confirmAndSaveOrder() {
     const now = new Date();
     const timeStr = `${String(now.getDate()).padStart(2,'0')}.${String(now.getMonth()+1).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
@@ -494,23 +469,24 @@
     orders.unshift(newOrder);
     saveOrders(orders);
 
-    const messageData = JSON.stringify({
+    // Подготовка чистого JSON для Salebot
+    const rawJson = JSON.stringify({
       event: 'order_created',
       order: newOrder
     });
 
-    // 1. Если открыто внутри мессенджера MAX через MAX Bridge
+    // 1. Попытка нативного метода WebApp MAX
     if (window.WebApp && typeof window.WebApp.sendData === 'function') {
-      window.WebApp.sendData(messageData);
+      window.WebApp.sendData(rawJson);
       if (typeof window.WebApp.close === 'function') {
         window.WebApp.close();
       }
       return;
     }
 
-    // 2. Если открыто во внешнем браузере (для тестов)
-    alert(`  Заказ #${newOrder.id} успешно создан!\nКурьеры получили уведомление.`);
-    
+    // 2. Универсальный шеринг в чат MAX (подставляет сообщение клиенту в диалог)
+    window.location.href = `https://max.ru/:share?text=${encodeURIComponent(rawJson)}`;
+
     // Очистка формы
     document.getElementById('inp-pickup').value = '';
     document.getElementById('inp-dest').value = '';
@@ -554,10 +530,10 @@
 
       if (o.status === 'process') { 
         stClass = 'st-process'; 
-        stText = 'В пути / назначен курьер'; 
+        stText = 'В доставке'; 
         courierBox = `
           <div class="contact-box">
-            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px;">Курьер назначен! Связь с курьером:</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px;">Связь с курьером:</div>
             <a class="phone-link" href="tel:${o.courierPhone}">  ${o.courierPhone}</a>
           </div>
         `;
@@ -574,18 +550,15 @@
             <span class="status-badge ${stClass}">${stText}</span>
           </div>
           <div class="order-info"><b>Зона:</b> ${o.zone} (${o.price} ₽)</div>
-          <div class="order-info"><b>Откуда / Что:</b> ${o.pickup}</div>
+          <div class="order-info"><b>Откуда:</b> ${o.pickup}</div>
           <div class="order-info"><b>Куда:</b> ${o.dest}</div>
-          <div class="order-info"><b>Ваш телефон:</b> ${o.clientPhone}</div>
+          <div class="order-info"><b>Телефон:</b> ${o.clientPhone}</div>
           ${courierBox}
         </div>
       `;
     }).join('');
   }
 
-  // ==========================================
-  // ЛОГИКА КУРЬЕРА
-  // ==========================================
   function switchCourierTab(tab) {
     const feed = document.getElementById('tab-courier-feed');
     const hist = document.getElementById('tab-courier-history');
@@ -612,7 +585,7 @@
     const orders = getOrders().filter(o => o.status === 'wait' || o.status === 'process');
 
     if (!orders.length) {
-      container.innerHTML = '<div class="empty-state">Нет активных заказов в ленте</div>';
+      container.innerHTML = '<div class="empty-state">Нет активных заказов</div>';
       return;
     }
 
@@ -629,14 +602,14 @@
         <div class="order-info"><b>Куда:</b> ${o.dest}</div>
         
         <div class="contact-box">
-          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px;">Контакт клиента для связи:</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px;">Клиент для связи:</div>
           <a class="phone-link" href="tel:${o.clientPhone}">  ${o.clientPhone}</a>
         </div>
 
         <div style="margin-top: 10px;">
           ${o.status === 'wait' 
-            ? `<button class="btn btn-primary" onclick="acceptOrderByCourier(${o.id})">Взять заказ в доставку</button>`
-            : `<button class="btn btn-accent" onclick="completeOrderByCourier(${o.id})">  Заказ доставлен</button>`
+            ? `<button class="btn btn-primary" onclick="acceptOrderByCourier(${o.id})">Взять заказ</button>`
+            : `<button class="btn btn-accent" onclick="completeOrderByCourier(${o.id})">  Доставлен</button>`
           }
         </div>
       </div>
@@ -651,7 +624,7 @@
     document.getElementById('courier-earned').textContent = total + ' ₽';
 
     if (!doneOrders.length) {
-      container.innerHTML = '<div class="empty-state">Выполненных заказов за смену нет</div>';
+      container.innerHTML = '<div class="empty-state">Выполненных заказов нет</div>';
       return;
     }
 
@@ -666,7 +639,6 @@
     `).join('');
   }
 
-  // Курьер берет заказ
   function acceptOrderByCourier(orderId) {
     const orders = getOrders();
     const item = orders.find(o => o.id === orderId);
@@ -675,31 +647,31 @@
       item.courierPhone = courierPhone;
       saveOrders(orders);
 
-      const acceptData = JSON.stringify({
+      const acceptJson = JSON.stringify({
         event: 'order_accepted',
         orderId: item.id,
         courierPhone: courierPhone,
         clientPhone: item.clientPhone
       });
 
-      // Передаем боту MAX
       if (window.WebApp && typeof window.WebApp.sendData === 'function') {
-        window.WebApp.sendData(acceptData);
+        window.WebApp.sendData(acceptJson);
+      } else {
+        window.location.href = `https://max.ru/:share?text=${encodeURIComponent(acceptJson)}`;
       }
 
-      alert(`Вы приняли заказ #${item.id}!\nНомер клиента: ${item.clientPhone}\nВаш номер отправлен клиенту.`);
+      alert(`Заказ #${item.id} взят в работу!`);
       renderCourierFeed();
     }
   }
 
-  // Курьер завершает заказ
   function completeOrderByCourier(orderId) {
     const orders = getOrders();
     const item = orders.find(o => o.id === orderId);
     if (item) {
       item.status = 'done';
       saveOrders(orders);
-      alert(`Заказ #${item.id} успешно закрыт! Оплата зачислена.`);
+      alert(`Заказ #${item.id} завершен!`);
       renderCourierFeed();
       renderCourierHistory();
     }
@@ -716,7 +688,6 @@
     }
   }
 
-  // Проверка параметров при старте
   window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const roleParam = urlParams.get('role');
