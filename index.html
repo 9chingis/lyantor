@@ -110,6 +110,7 @@ async function api(path, options={}) {
   return data;
 }
 async function bootstrap(){
+  alert("Твой MAX ID: " + data.user.id);
   try{
     const data=await api('/me');
     me=data.user; currentRole=data.user.role==='courier'?'courier':'client'; setRole(currentRole);
