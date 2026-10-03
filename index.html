@@ -79,26 +79,28 @@ const api = {
   adminRemove:    function(id) { return apiRequest('/api/admin/remove/' + id, { method: 'DELETE' }); },
 };
 
-// ─── Форматирование адреса для карточек ───
+// ─── Хелперы отображения адреса ───
 function formatAddress(o) {
   var street = o.delivery_street || '';
   var house = o.delivery_house || '';
-  var parts = [(street && house ? street + ', ' + house : o.delivery_addr)];
+  var base = (street && house) ? (street + ', ' + house) : (o.delivery_addr || '');
+  var parts = [base];
   if (o.delivery_apartment) parts.push('кв. ' + o.delivery_apartment);
   if (o.delivery_entrance) parts.push('под. ' + o.delivery_entrance);
   if (o.delivery_floor) parts.push('эт. ' + o.delivery_floor);
   if (o.delivery_intercom) parts.push('домофон ' + o.delivery_intercom);
-  return parts.join(', ');
+  return parts.filter(Boolean).join(', ');
 }
 
 function formatSavedAddress(a) {
   var street = a.street || '';
   var house = a.house || '';
-  var parts = [(street && house ? street + ', ' + house : a.address)];
+  var base = (street && house) ? (street + ', ' + house) : (a.address || '');
+  var parts = [base];
   if (a.apartment) parts.push('кв. ' + a.apartment);
   if (a.entrance) parts.push('под. ' + a.entrance);
   if (a.floor) parts.push('эт. ' + a.floor);
-  return parts.join(', ');
+  return parts.filter(Boolean).join(', ');
 }
 
 function NavBtn(props) {
@@ -458,4 +460,101 @@ function AdminPanel() {
   return React.createElement('div', null,
     React.createElement('div', { style: { display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' } },
       React.createElement(ToggleBtn, { active: tab === 'requests', onClick: function() { setTab('requests'); } }, 'Заявки (' + requests.length + ')'),
-      React.createElement(ToggleBtn, { active: tab === 'couriers', onClick: function() { setTab('couriers'); } }, 'Курьеры (' + couriers.length + ')
+      React.createElement(ToggleBtn, { active: tab === 'couriers', onClick: function() { setTab('couriers'); } }, 'Курьеры (' + couriers.length + ')'),
+      React.createElement(ToggleBtn, { active: tab === 'stats', onClick: function() { setTab('stats'); } }, 'Статистика')
+    ),
+    tab === 'requests' && React.createElement('div', null,
+      !requests.length && React.createElement('p', { style: { color: '#888' } }, 'Новых заявок нет'),
+      requests.map(function(r) {
+        return React.createElement('div', { key: r.user_id,
+          style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
+          React.createElement('p', { style: { margin: '0 0 4px 0', fontWeight: 600 } }, (r.first_name || 'Без имени') + ' (' + r.user_id + ')'),
+          r.username && React.createElement('p', { style: { margin: '0 0 8px 0', fontSize: 13, color: '#888' } }, '@' + r.username),
+          React.createElement('div', { style: { display: 'flex', gap: 8 } },
+            React.createElement('button', { onClick: function() { approve(r.user_id); },
+              style: { flex: 1, padding: 10, background: '#66BB6A', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer' } }, 'Подтвердить'),
+            React.createElement('button', { onClick: function() { remove(r.user_id); },
+              style: { flex: 1, padding: 10, background: '#fff', color: '#EF5350', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer' } }, 'Отклонить')
+          )
+        );
+      })
+    ),
+    tab === 'couriers' && React.createElement('div', null,
+      !couriers.length && React.createElement('p', { style: { color: '#888' } }, 'Курьеров пока нет'),
+      couriers.map(function(c) {
+        return React.createElement('div', { key: c.user_id,
+          style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
+          React.createElement('p', { style: { margin: '0 0 4px 0', fontWeight: 600 } }, (c.first_name || 'Без имени') + ' (' + c.user_id + ')'),
+          c.username && React.createElement('p', { style: { margin: '0 0 4px 0', fontSize: 13, color: '#888' } }, '@' + c.username),
+          React.createElement('p', { style: { margin: '0 0 10px 0', fontSize: 13, color: c.phone ? '#4C6EF5' : '#EF5350' } },
+            c.phone ? '📱 СБП: ' + c.phone : '⚠️ Номер СБП не указан'
+          ),
+          React.createElement('button', { onClick: function() { remove(c.user_id); },
+            style: { width: '100%', padding: 10, background: '#fff', color: '#EF5350', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer' } }, 'Удалить курьера')
+        );
+      })
+    ),
+    tab === 'stats' && React.createElement('div', null,
+      !stats.length && React.createElement('p', { style: { color: '#888' } }, 'Статистики пока нет'),
+      stats.map(function(s) {
+        return React.createElement('div', { key: s.courier_id,
+          style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
+          React.createElement('p', { style: { margin: '0 0 6px 0', fontWeight: 600 } }, s.courier_name || ('ID ' + s.courier_id)),
+          React.createElement('p', { style: { margin: '2px 0', fontSize: 13 } }, 'Всего заказов: ' + s.total),
+          React.createElement('p', { style: { margin: '2px 0', fontSize: 13, color: '#66BB6A' } }, '✅ Выполнено: ' + s.done),
+          React.createElement('p', { style: { margin: '2px 0', fontSize: 13, color: '#EF5350' } }, '❌ Отменено: ' + s.canceled),
+          React.createElement('p', { style: { margin: '6px 0 0 0', fontSize: 14, fontWeight: 700 } }, 'Выручка: ' + s.revenue + ' ₽')
+        );
+      })
+    )
+  );
+}
+
+// ─── Главный ───
+function App() {
+  const [tab, setTab] = useState('new');
+  const [me, setMe] = useState(null);
+
+  function reloadMe() {
+    api.me().then(setMe).catch(function() {
+      setMe({ id: 0, is_courier: false, is_admin: false, courier_status: 'none', courier_phone: null });
+    });
+  }
+
+  useEffect(function() {
+    try {
+      if (window.WebApp && typeof window.WebApp.ready === 'function') window.WebApp.ready();
+      if (window.WebApp && typeof window.WebApp.expand === 'function') window.WebApp.expand();
+    } catch (e) {}
+    reloadMe();
+  }, []);
+
+  const isCourier = me && (me.is_courier || me.is_admin);
+  const isAdmin = me && me.is_admin;
+
+  return React.createElement(React.Fragment, null,
+    React.createElement('header', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: '#fff', borderBottom: '1px solid #eee' } },
+      React.createElement('h1', { style: { margin: 0, fontSize: 18 } }, '🚚 Лянтор Доставка'),
+      me && React.createElement('span', { style: { fontSize: 13, color: '#666' } }, me.first_name || 'Гость')
+    ),
+    React.createElement('main', { style: { flex: 1, padding: 16, overflowY: 'auto' } },
+      tab === 'new' && React.createElement(NewOrder, { onDone: function() { setTab('orders'); } }),
+      tab === 'orders' && React.createElement(MyOrders),
+      tab === 'courier' && isCourier && React.createElement(CourierPanel, { phone: me && me.courier_phone, onPhoneChange: function(p) { setMe(Object.assign({}, me, { courier_phone: p })); } }),
+      tab === 'courier-request' && React.createElement(CourierRequest),
+      tab === 'admin' && isAdmin && React.createElement(AdminPanel)
+    ),
+    React.createElement('nav', { style: { display: 'flex', borderTop: '1px solid #eee', background: '#fff', flexWrap: 'wrap' } },
+      React.createElement(NavBtn, { active: tab === 'new', onClick: function() { setTab('new'); } }, 'Новый'),
+      React.createElement(NavBtn, { active: tab === 'orders', onClick: function() { setTab('orders'); } }, 'Мои'),
+      isCourier && React.createElement(NavBtn, { active: tab === 'courier', onClick: function() { setTab('courier'); } }, 'Курьер'),
+      !isCourier && React.createElement(NavBtn, { active: tab === 'courier-request', onClick: function() { setTab('courier-request'); } }, 'Стать курьером'),
+      isAdmin && React.createElement(NavBtn, { active: tab === 'admin', onClick: function() { setTab('admin'); } }, 'Админ')
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
