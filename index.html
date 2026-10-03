@@ -79,7 +79,7 @@ const api = {
   adminRemove:    function(id) { return apiRequest('/api/admin/remove/' + id, { method: 'DELETE' }); },
 };
 
-// ─── Хелперы отображения адреса ───
+// ─── Хелперы отображения адреса ──
 function formatAddress(o) {
   var street = o.delivery_street || '';
   var house = o.delivery_house || '';
