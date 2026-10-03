@@ -1,222 +1,542 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="theme-color" content="#f4f6f9">
-  <title>Доставка Лянтор</title>
-  <script src="https://st.max.ru/js/max-web-app.js"></script>
-  <style>
-    :root{--bg:#f4f6f9;--card:#fff;--text:#1f2937;--muted:#6b7280;--primary:#2563eb;--accent:#10b981;--warning:#f59e0b;--border:#e5e7eb;--danger:#ef4444}
-    @media(prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--muted:#94a3b8;--border:#334155}}
-    *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
-    body{background:var(--bg);color:var(--text);padding:14px 14px 82px;display:flex;justify-content:center}
-    .app{width:100%;max-width:440px}.hidden{display:none!important}
-    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-    .role-tag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:12px;background:rgba(37,99,235,.1);color:var(--primary)}
-    .role-btn{background:none;border:0;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer}
-    .card,.order-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-    .title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-    .zones{display:flex;flex-direction:column;gap:8px}.zone-row{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer}
-    .zone-row.active{border-color:var(--primary);background:rgba(37,99,235,.05)}.zone-price{font-weight:700;color:var(--accent)}
-    textarea,input[type=tel],input[type=password]{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);font-size:14px;outline:0;margin-top:4px}
-    textarea{min-height:65px;resize:vertical}.btn{width:100%;padding:12px;border:0;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;text-align:center;display:block}
-    .btn:disabled{opacity:.6}.btn-primary{background:var(--primary);color:#fff}.btn-accent{background:var(--accent);color:#fff}
-    .btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border);margin-top:8px}
-    .order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px}
-    .status-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px}.st-wait{background:rgba(245,158,11,.15);color:var(--warning)}
-    .st-process{background:rgba(37,99,235,.15);color:var(--primary)}.st-done{background:rgba(16,185,129,.15);color:var(--accent)}
-    .order-info{font-size:13px;margin-bottom:4px}.contact-box{background:rgba(37,99,235,.08);border:1px solid var(--primary);border-radius:8px;padding:10px;margin-top:8px;margin-bottom:8px}
-    .phone-link{color:var(--primary);font-weight:700;text-decoration:none;font-size:15px}.empty-state{text-align:center;color:var(--muted);padding:24px 0;font-size:14px}
-    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 0 12px;max-width:440px;margin:0 auto;z-index:10}
-    .nav-btn{background:none;border:0;display:flex;flex-direction:column;align-items:center;font-size:12px;color:var(--muted);cursor:pointer;width:50%;gap:3px}.nav-btn.active{color:var(--primary);font-weight:600}
-    .notice{padding:10px 12px;border-radius:10px;background:rgba(245,158,11,.12);color:var(--warning);font-size:12px;margin-bottom:12px}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Лянтор Доставка</title>
+<link rel="icon" href="data:,">
+<script src="https://st.max.ru/js/max-web-app.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: #f7f8fa; }
+  #root { min-height: 100vh; display: flex; flex-direction: column; }
+  input, textarea, select { font-family: inherit; }
+</style>
 </head>
 <body>
-<div class="app">
-  <div class="header">
-    <span class="role-tag" id="role-badge">Клиент</span>
-    <button class="role-btn" onclick="toggleRoleAuth()">Вход курьера</button>
-  </div>
+<div id="root"></div>
 
-  <div id="client-screen">
-    <div id="tab-new-order">
-      <div id="view-create">
-        <div class="card"><div class="title">1. Зона доставки</div>
-          <div class="zones">
-            <div class="zone-row active" onclick="selectZone('Город',200,this)"><span>Город</span><span class="zone-price">200 ₽</span></div>
-            <div class="zone-row" onclick="selectZone('Промзона',350,this)"><span>Промзона</span><span class="zone-price">350 ₽</span></div>
-            <div class="zone-row" onclick="selectZone('Самарская',400,this)"><span>Самарская</span><span class="zone-price">400 ₽</span></div>
-            <div class="zone-row" onclick="selectZone('Старые дачи',550,this)"><span>Старые дачи</span><span class="zone-price">550 ₽</span></div>
-            <div class="zone-row" onclick="selectZone('Новые дачи',600,this)"><span>Новые дачи</span><span class="zone-price">600 ₽</span></div>
-          </div>
-        </div>
-        <div class="card"><div class="title">2. Что забрать / купить</div><textarea id="inp-pickup" placeholder="Название магазина или список покупок"></textarea></div>
-        <div class="card"><div class="title">3. Куда доставить</div>
-          <textarea id="inp-dest" placeholder="Улица, дом, подъезд, квартира"></textarea>
-          <div style="margin-top:8px"><label style="font-size:12px;color:var(--muted)">Ваш номер телефона:</label><input type="tel" id="inp-phone" placeholder="+7 (___) ___-__-__"></div>
-        </div>
-        <button class="btn btn-primary" onclick="showSummary()">Проверить заказ</button>
-      </div>
-      <div id="view-summary" class="hidden">
-        <div class="card"><div class="title">Проверка данных заказа</div>
-          <div class="order-info"><b>Зона:</b> <span id="s-zone"></span></div>
-          <div class="order-info"><b>Откуда / Что:</b> <span id="s-pickup"></span></div>
-          <div class="order-info"><b>Куда:</b> <span id="s-dest"></span></div>
-          <div class="order-info"><b>Телефон:</b> <span id="s-phone"></span></div>
-          <div style="border-top:1px dashed var(--border);margin-top:8px;padding-top:8px;font-weight:bold;display:flex;justify-content:space-between"><span>Стоимость курьера:</span><span id="s-price" style="color:var(--accent)">0 ₽</span></div>
-        </div>
-        <button class="btn btn-accent" id="submit-btn" onclick="confirmAndSaveOrder()">✅ Подтвердить и отправить</button>
-        <button class="btn btn-secondary" onclick="backToForm()">✏️ Изменить данные</button>
-      </div>
-    </div>
-    <div id="tab-client-history" class="hidden"><div class="title">История ваших заказов</div><div id="client-history-list"></div></div>
-    <nav class="bottom-nav">
-      <button class="nav-btn active" id="btn-client-tab1" onclick="switchClientTab('new')"><span>➕</span><span>Новый заказ</span></button>
-      <button class="nav-btn" id="btn-client-tab2" onclick="switchClientTab('history')"><span>📋</span><span>Мои заказы</span></button>
-    </nav>
-  </div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
 
-  <div id="courier-screen" class="hidden">
-    <div id="tab-courier-feed"><div class="title">Лента доступных заказов</div><div id="courier-feed-list"></div></div>
-    <div id="tab-courier-history" class="hidden">
-      <div class="card" style="display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-weight:700;font-size:18px;color:var(--accent)" id="courier-earned">0 ₽</div><div style="font-size:12px;color:var(--muted)">Заработано за смену</div></div>
-        <button class="btn btn-secondary" style="width:auto;padding:6px 12px;margin:0;font-size:12px" onclick="toggleShiftStatus()" id="shift-toggle-btn">Смена: В сети</button>
-      </div>
-      <div class="title">Выполненные заказы</div><div id="courier-done-list"></div>
-    </div>
-    <nav class="bottom-nav">
-      <button class="nav-btn active" id="btn-courier-tab1" onclick="switchCourierTab('feed')"><span>📦</span><span>В работе</span></button>
-      <button class="nav-btn" id="btn-courier-tab2" onclick="switchCourierTab('history')"><span>💼</span><span>Моя смена</span></button>
-    </nav>
-  </div>
-</div>
+const API_URL = "https://lyantor-delivery-api.9chingis.workers.dev";
 
-<script>
-const API_BASE = 'https://lyantor-api.9chingis.workers.dev';
-let currentZone='Город', currentPrice=200, currentRole='client', sessionToken='';
-let me=null;
+const ZONES = {
+  city:       { label: 'Город',        price: 200 },
+  promzona:   { label: 'Промзона',     price: 350 },
+  samarskaya: { label: 'Самарская',    price: 450 },
+  old_dachi:  { label: 'Старые дачи',  price: 550 },
+  new_dachi:  { label: 'Новые дачи',   price: 600 },
+};
 
-function webApp(){return window.WebApp||null}
-function maxInitData(){return webApp()?.initData || ''}
-async function api(path, options={}) {
-  const headers={'Content-Type':'application/json','X-MAX-Init-Data':maxInitData()};
-  if(sessionToken) headers.Authorization='Bearer '+sessionToken;
-  const r=await fetch(API_BASE+path,{...options,headers:{...headers,...(options.headers||{})}});
-  const data=await r.json().catch(()=>({}));
-  if(!r.ok) throw new Error(data.error||'Ошибка сервера');
-  return data;
+const STATUSES = {
+  new:         { label: 'Новый',    color: '#FFA726' },
+  accepted:    { label: 'Принят',   color: '#42A5F5' },
+  in_progress: { label: 'В работе', color: '#7E57C2' },
+  done:        { label: 'Выполнен', color: '#66BB6A' },
+  canceled:    { label: 'Отменён',  color: '#EF5350' },
+};
+
+function getInitData() {
+  try { return (window.WebApp && window.WebApp.initData) || ''; } catch (e) { return ''; }
 }
-async function bootstrap(){
-  alert("Твой MAX ID: " + data.user.id);
-  try{
-    const data=await api('/me');
-me=data.user;
-document.body.insertAdjacentHTML('afterbegin', '<div style="position:fixed;top:0;left:0;right:0;z-index:99999;background:red;color:white;padding:20px;font-size:24px;text-align:center;">MAX ID: '+data.user.id+'</div>');
-  }catch(e){
-    document.body.insertAdjacentHTML('afterbegin','<div class="notice">Откройте приложение внутри MAX. Авторизация MAX не получена.</div>');
-    setRole('client');
+
+async function apiRequest(path, options) {
+  options = options || {};
+  const res = await fetch(API_URL + path, {
+    method: options.method || 'GET',
+    headers: { 'Content-Type': 'application/json', 'x-max-init-data': getInitData() },
+    body: options.body,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(function() { return { error: 'network' }; });
+    throw new Error(err.error || 'Ошибка сети');
   }
+  return res.json();
 }
-function setRole(role){
-  currentRole=role;
-  const badge=document.getElementById('role-badge');
-  badge.textContent=role==='courier'?'Курьер':'Клиент';
-  badge.style.color=role==='courier'?'#10b981':'#2563eb';
-  document.getElementById('client-screen').classList.toggle('hidden',role==='courier');
-  document.getElementById('courier-screen').classList.toggle('hidden',role!=='courier');
-  if(role==='courier'){renderCourierFeed();renderCourierHistory()}else renderClientHistory();
+
+const api = {
+  me:             function() { return apiRequest('/api/me'); },
+  createOrder:    function(p) { return apiRequest('/api/orders', { method: 'POST', body: JSON.stringify(p) }); },
+  myOrders:       function() { return apiRequest('/api/orders/my'); },
+  cancelOrder:    function(id) { return apiRequest('/api/orders/' + id + '/cancel', { method: 'POST' }); },
+  addresses:      function() { return apiRequest('/api/addresses'); },
+  saveAddress:    function(a) { return apiRequest('/api/addresses', { method: 'POST', body: JSON.stringify(a) }); },
+  deleteAddress:  function(id) { return apiRequest('/api/addresses/' + id, { method: 'DELETE' }); },
+  courierRequest: function() { return apiRequest('/api/courier/request', { method: 'POST' }); },
+  courierStatus:  function() { return apiRequest('/api/courier/status'); },
+  courierSetPhone: function(phone) { return apiRequest('/api/courier/phone', { method: 'POST', body: JSON.stringify({ phone: phone }) }); },
+  courierOrders:  function(s) { return apiRequest('/api/courier/orders' + (s ? '?status=' + s : '')); },
+  courierAccept:  function(id) { return apiRequest('/api/courier/orders/' + id + '/accept', { method: 'POST' }); },
+  courierSetStatus: function(id, s) { return apiRequest('/api/courier/orders/' + id + '/status', { method: 'PATCH', body: JSON.stringify({ status: s }) }); },
+  adminRequests:  function() { return apiRequest('/api/admin/requests'); },
+  adminCouriers:  function() { return apiRequest('/api/admin/couriers'); },
+  adminStats:     function() { return apiRequest('/api/admin/stats'); },
+  adminApprove:   function(id) { return apiRequest('/api/admin/approve/' + id, { method: 'POST' }); },
+  adminRemove:    function(id) { return apiRequest('/api/admin/remove/' + id, { method: 'DELETE' }); },
+};
+
+// ─── Хелпер: форматирование адреса в строку ───
+function formatAddress(o) {
+  var parts = [o.delivery_addr];
+  if (o.delivery_apartment) parts.push('кв. ' + o.delivery_apartment);
+  if (o.delivery_entrance) parts.push('под. ' + o.delivery_entrance);
+  if (o.delivery_floor) parts.push('эт. ' + o.delivery_floor);
+  if (o.delivery_intercom) parts.push('домофон ' + o.delivery_intercom);
+  return parts.join(', ');
 }
-async function toggleRoleAuth(){
-  const pin=prompt('Введите PIN курьера:');
-  if(pin===null)return;
-  try{
-    const data=await api('/auth/courier',{method:'POST',body:JSON.stringify({pin})});
-    sessionToken=data.token; setRole('courier'); alert('Вход курьера выполнен');
-  }catch(e){alert(e.message)}
+
+function formatSavedAddress(a) {
+  var parts = [a.address];
+  if (a.apartment) parts.push('кв. ' + a.apartment);
+  if (a.entrance) parts.push('под. ' + a.entrance);
+  if (a.floor) parts.push('эт. ' + a.floor);
+  return parts.join(', ');
 }
-function selectZone(zone,price,el){
-  document.querySelectorAll('.zone-row').forEach(z=>z.classList.remove('active'));
-  el.classList.add('active');currentZone=zone;currentPrice=price;
+
+function NavBtn(props) {
+  return React.createElement('button', {
+    onClick: props.onClick,
+    style: {
+      flex: 1, padding: 12, border: 0, background: 'transparent', fontSize: 13,
+      color: props.active ? '#4C6EF5' : '#888',
+      fontWeight: props.active ? 700 : 400, cursor: 'pointer',
+    }
+  }, props.children);
 }
-function showSummary(){
-  const pickup=document.getElementById('inp-pickup').value.trim(),dest=document.getElementById('inp-dest').value.trim(),phone=document.getElementById('inp-phone').value.trim();
-  if(!pickup)return alert('Укажите, что купить или откуда забрать.');
-  if(!dest)return alert('Укажите адрес доставки.');
-  if(!phone)return alert('Укажите ваш телефон.');
-  document.getElementById('s-zone').textContent=currentZone;document.getElementById('s-pickup').textContent=pickup;document.getElementById('s-dest').textContent=dest;document.getElementById('s-phone').textContent=phone;document.getElementById('s-price').textContent=currentPrice+' ₽';
-  document.getElementById('view-create').classList.add('hidden');document.getElementById('view-summary').classList.remove('hidden');
+
+function Field(props) {
+  return React.createElement('label', { style: { display: 'block', marginBottom: 10 } },
+    React.createElement('div', { style: { fontSize: 13, color: '#666', marginBottom: 4 } }, props.label),
+    props.children
+  );
 }
-function backToForm(){document.getElementById('view-summary').classList.add('hidden');document.getElementById('view-create').classList.remove('hidden')}
-async function confirmAndSaveOrder(){
-  const btn=document.getElementById('submit-btn');btn.disabled=true;btn.textContent='Отправка заказа...';
-  try{
-    const order=await api('/orders',{method:'POST',body:JSON.stringify({
-      zone:currentZone,price:currentPrice,
-      pickup:document.getElementById('inp-pickup').value.trim(),
-      dest:document.getElementById('inp-dest').value.trim(),
-      clientPhone:document.getElementById('inp-phone').value.trim()
-    })});
-    alert('✅ Заказ #'+order.order.id+' оформлен! Курьеры оповещены.');
-    document.getElementById('inp-pickup').value='';document.getElementById('inp-dest').value='';document.getElementById('inp-phone').value='';
-    backToForm();switchClientTab('history');
-  }catch(e){alert(e.message)}
-  finally{btn.disabled=false;btn.textContent='✅ Подтвердить и отправить'}
+
+function ToggleBtn(props) {
+  return React.createElement('button', {
+    onClick: props.onClick,
+    style: {
+      flex: 1, padding: 10, border: 0, borderRadius: 8, fontSize: 15,
+      background: props.active ? '#4C6EF5' : '#eee',
+      color: props.active ? '#fff' : '#000',
+      fontWeight: props.active ? 600 : 400, cursor: 'pointer',
+    }
+  }, props.children);
 }
-function switchClientTab(tab){
-  const n=document.getElementById('tab-new-order'),h=document.getElementById('tab-client-history');
-  const b1=document.getElementById('btn-client-tab1'),b2=document.getElementById('btn-client-tab2');
-  n.classList.toggle('hidden',tab!=='new');h.classList.toggle('hidden',tab==='new');b1.classList.toggle('active',tab==='new');b2.classList.toggle('active',tab!=='new');
-  if(tab==='history')renderClientHistory();
+
+function StatusBadge(props) {
+  const st = STATUSES[props.status] || { label: props.status, color: '#999' };
+  return React.createElement('span', {
+    style: { background: st.color, color: '#fff', borderRadius: 12, padding: '2px 10px', fontSize: 12, fontWeight: 600 }
+  }, st.label);
 }
-function status(o){
-  if(o.status==='process')return ['st-process','В доставке'];
-  if(o.status==='done')return ['st-done','Доставлен'];
-  return ['st-wait','Ожидает курьера'];
+
+// ─── Новый заказ ───
+function NewOrder(props) {
+  const [form, setForm] = useState({
+    task_type: 'pickup', description: '', pickup_addr: '',
+    delivery_addr: '', delivery_apartment: '', delivery_entrance: '',
+    delivery_floor: '', delivery_intercom: '',
+    zone: 'city', phone: '', customer_name: '', comment: '',
+  });
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [saveAddress, setSaveAddress] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  useEffect(function() {
+    api.addresses().then(setSavedAddresses).catch(function() {});
+  }, []);
+
+  function set(k, v) { setForm(function(f) { const n = Object.assign({}, f); n[k] = v; return n; }); }
+  const price = ZONES[form.zone].price;
+  const inputStyle = { width: '100%', padding: 10, border: '1px solid #ddd', borderRadius: 8, fontSize: 15 };
+
+  function applySaved(addrId) {
+    if (!addrId) return;
+    const a = savedAddresses.find(function(x) { return String(x.id) === String(addrId); });
+    if (!a) return;
+    setForm(function(f) {
+      return Object.assign({}, f, {
+        delivery_addr: a.address || '',
+        delivery_apartment: a.apartment || '',
+        delivery_entrance: a.entrance || '',
+        delivery_floor: a.floor || '',
+        delivery_intercom: a.intercom || '',
+        comment: a.comment || f.comment,
+      });
+    });
+  }
+
+  async function submit() {
+    if (!form.phone || !form.description || !form.delivery_addr) {
+      alert('Заполните телефон, описание и адрес доставки'); return;
+    }
+    setSending(true);
+    try {
+      await api.createOrder(Object.assign({}, form, { save_address: saveAddress }));
+      alert('Заказ принят! К оплате курьеру: ' + price + ' ₽');
+      props.onDone();
+    } catch (e) { alert(e.message || 'Ошибка'); } finally { setSending(false); }
+  }
+
+  return React.createElement('div', null,
+    React.createElement('div', { style: { display: 'flex', gap: 8, marginBottom: 14 } },
+      React.createElement(ToggleBtn, { active: form.task_type === 'pickup', onClick: function() { set('task_type', 'pickup'); } }, 'Забрать'),
+      React.createElement(ToggleBtn, { active: form.task_type === 'buy', onClick: function() { set('task_type', 'buy'); } }, 'Купить')
+    ),
+    React.createElement(Field, { label: 'Что нужно сделать' },
+      React.createElement('textarea', { style: Object.assign({}, inputStyle, { resize: 'vertical' }), rows: 3, value: form.description,
+        onChange: function(e) { set('description', e.target.value); },
+        placeholder: form.task_type === 'pickup' ? 'Забрать документы из офиса №5' : 'Купить хлеб, молоко 2 л' })
+    ),
+    form.task_type === 'pickup' && React.createElement(Field, { label: 'Откуда забрать' },
+      React.createElement('input', { style: inputStyle, value: form.pickup_addr, onChange: function(e) { set('pickup_addr', e.target.value); }, placeholder: 'Улица, дом' })
+    ),
+
+    // ─── Блок адреса доставки ───
+    savedAddresses.length > 0 && React.createElement(Field, { label: 'Сохранённые адреса' },
+      React.createElement('select', {
+        style: inputStyle,
+        defaultValue: '',
+        onChange: function(e) { applySaved(e.target.value); }
+      },
+        React.createElement('option', { value: '' }, '— выбрать из сохранённых —'),
+        savedAddresses.map(function(a) {
+          return React.createElement('option', { key: a.id, value: a.id }, formatSavedAddress(a));
+        })
+      )
+    ),
+
+    React.createElement(Field, { label: 'Адрес (улица, дом)' },
+      React.createElement('input', { style: inputStyle, value: form.delivery_addr, onChange: function(e) { set('delivery_addr', e.target.value); }, placeholder: 'Лянтор, ул. Салавата Юлаева, 64' })
+    ),
+
+    React.createElement('div', { style: { display: 'flex', gap: 8 } },
+      React.createElement('div', { style: { flex: 1 } },
+        React.createElement(Field, { label: 'Кв. или офис' },
+          React.createElement('input', { style: inputStyle, value: form.delivery_apartment, onChange: function(e) { set('delivery_apartment', e.target.value); }, placeholder: '14' })
+        )
+      ),
+      React.createElement('div', { style: { flex: 1 } },
+        React.createElement(Field, { label: 'Подъезд' },
+          React.createElement('input', { style: inputStyle, value: form.delivery_entrance, onChange: function(e) { set('delivery_entrance', e.target.value); }, placeholder: '2' })
+        )
+      )
+    ),
+
+    React.createElement('div', { style: { display: 'flex', gap: 8 } },
+      React.createElement('div', { style: { flex: 1 } },
+        React.createElement(Field, { label: 'Этаж' },
+          React.createElement('input', { style: inputStyle, value: form.delivery_floor, onChange: function(e) { set('delivery_floor', e.target.value); }, placeholder: '2' })
+        )
+      ),
+      React.createElement('div', { style: { flex: 1 } },
+        React.createElement(Field, { label: 'Домофон' },
+          React.createElement('input', { style: inputStyle, value: form.delivery_intercom, onChange: function(e) { set('delivery_intercom', e.target.value); }, placeholder: 'нет / 1234' })
+        )
+      )
+    ),
+
+    React.createElement(Field, { label: 'Комментарий курьеру' },
+      React.createElement('textarea', { style: Object.assign({}, inputStyle, { resize: 'vertical' }), rows: 3, value: form.comment,
+        onChange: function(e) { set('comment', e.target.value); },
+        placeholder: 'Например: 2 микрорайон, 64, звонить за 10 минут' })
+    ),
+
+    React.createElement('label', { style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 14, cursor: 'pointer' } },
+      React.createElement('input', { type: 'checkbox', checked: saveAddress, onChange: function(e) { setSaveAddress(e.target.checked); } }),
+      'Сохранить адрес для следующих заказов'
+    ),
+
+    React.createElement(Field, { label: 'Зона доставки' },
+      React.createElement('select', { style: inputStyle, value: form.zone, onChange: function(e) { set('zone', e.target.value); } },
+        Object.keys(ZONES).map(function(k) { return React.createElement('option', { key: k, value: k }, ZONES[k].label + ' — ' + ZONES[k].price + ' ₽'); })
+      )
+    ),
+    React.createElement(Field, { label: 'Ваше имя' },
+      React.createElement('input', { style: inputStyle, value: form.customer_name, onChange: function(e) { set('customer_name', e.target.value); } })
+    ),
+    React.createElement(Field, { label: 'Телефон' },
+      React.createElement('input', { style: inputStyle, type: 'tel', value: form.phone, onChange: function(e) { set('phone', e.target.value); }, placeholder: '+7...' })
+    ),
+    React.createElement('div', { style: { marginTop: 16, fontSize: 18, fontWeight: 700 } }, 'Итого: ' + price + ' ₽ (оплата курьеру)'),
+    React.createElement('button', { onClick: submit, disabled: sending,
+      style: { marginTop: 12, width: '100%', padding: 14, background: '#4C6EF5', color: '#fff', border: 0, borderRadius: 8, fontSize: 16, cursor: 'pointer' }
+    }, sending ? 'Отправка…' : 'Оформить заказ')
+  );
 }
-async function renderClientHistory(){
-  const c=document.getElementById('client-history-list');
-  try{
-    const {orders}=await api('/orders/mine');
-    if(!orders.length){c.innerHTML='<div class="empty-state">У вас пока нет оформленных заказов</div>';return}
-    c.innerHTML=orders.map(o=>{
-      const [cl,st]=status(o);
-      const courier=o.status==='process'&&o.courierPhone?`<div class="contact-box"><div style="font-size:12px;color:var(--muted);margin-bottom:2px">Связь с курьером:</div><a class="phone-link" href="tel:${esc(o.courierPhone)}">📞 ${esc(o.courierPhone)}</a></div>`:'';
-      return `<div class="order-card"><div class="order-head"><b>Заказ #${o.id} • ${esc(o.date)}</b><span class="status-badge ${cl}">${st}</span></div><div class="order-info"><b>Зона:</b> ${esc(o.zone)} (${o.price} ₽)</div><div class="order-info"><b>Откуда:</b> ${esc(o.pickup)}</div><div class="order-info"><b>Куда:</b> ${esc(o.dest)}</div><div class="order-info"><b>Телефон:</b> ${esc(o.clientPhone)}</div>${courier}</div>`;
-    }).join('');
-  }catch(e){c.innerHTML='<div class="empty-state">'+esc(e.message)+'</div>'}
+
+// ─── Мои заказы ───
+function MyOrders() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  function load() {
+    setLoading(true);
+    api.myOrders().then(setOrders).catch(function(e) { alert(e.message); }).finally(function() { setLoading(false); });
+  }
+  useEffect(load, []);
+
+  async function cancel(id) {
+    if (!confirm('Отменить заказ #' + id + '?')) return;
+    try { await api.cancelOrder(id); load(); }
+    catch (e) { alert(e.message === 'cannot_cancel' ? 'Заказ уже взят курьером. Свяжитесь с ним напрямую.' : e.message); }
+  }
+
+  if (loading) return React.createElement('p', { style: { color: '#888' } }, 'Загрузка…');
+  if (!orders.length) return React.createElement('p', { style: { color: '#888' } }, 'У вас пока нет заказов');
+
+  return React.createElement('div', null, orders.map(function(o) {
+    return React.createElement('div', { key: o.id,
+      style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
+      React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', marginBottom: 8 } },
+        React.createElement('b', null, 'Заказ #' + o.id),
+        React.createElement(StatusBadge, { status: o.status })
+      ),
+      React.createElement('p', { style: { margin: '6px 0' } }, o.description),
+      o.pickup_addr && React.createElement('p', { style: { margin: '4px 0', fontSize: 13, color: '#888' } }, 'Откуда: ' + o.pickup_addr),
+      React.createElement('p', { style: { margin: '4px 0', fontSize: 13, color: '#888' } }, 'Куда: ' + formatAddress(o)),
+      React.createElement('p', { style: { margin: '4px 0', fontSize: 13, color: '#888' } },
+        'Зона: ' + ((ZONES[o.zone] || {}).label || '') + ' — ' + o.price + ' ₽'
+      ),
+      o.comment && React.createElement('p', { style: { margin: '4px 0', fontSize: 13, color: '#888' } }, '💬 ' + o.comment),
+      o.courier_name && React.createElement('div', { style: { marginTop: 10, padding: 10, background: '#f0f5ff', borderRadius: 8 } },
+        React.createElement('p', { style: { margin: 0, fontSize: 13, fontWeight: 600 } }, '🚚 Курьер: ' + o.courier_name),
+        o.courier_phone && React.createElement('p', { style: { margin: '4px 0 0 0', fontSize: 13 } }, '📱 СБП: ' + o.courier_phone)
+      ),
+      o.status === 'new' && React.createElement('button', { onClick: function() { cancel(o.id); },
+        style: { marginTop: 10, width: '100%', padding: 10, background: '#fff', color: '#EF5350', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer' }
+      }, 'Отменить заказ')
+    );
+  }));
 }
-async function renderCourierFeed(){
-  const c=document.getElementById('courier-feed-list');
-  try{
-    const {orders}=await api('/orders/available');
-    if(!orders.length){c.innerHTML='<div class="empty-state">Нет активных заказов</div>';return}
-    c.innerHTML=orders.map(o=>`<div class="order-card"><div class="order-head"><b>Заказ #${o.id} • ${esc(o.date)}</b><span class="status-badge ${o.status==='wait'?'st-wait':'st-process'}">${o.status==='wait'?'Свободен':'Взят вами'}</span></div><div class="order-info"><b>Зона:</b> ${esc(o.zone)} (<b>${o.price} ₽</b>)</div><div class="order-info"><b>Забрать:</b> ${esc(o.pickup)}</div><div class="order-info"><b>Куда:</b> ${esc(o.dest)}</div><div class="contact-box"><div style="font-size:12px;color:var(--muted);margin-bottom:2px">Клиент для связи:</div><a class="phone-link" href="tel:${esc(o.clientPhone)}">📞 ${esc(o.clientPhone)}</a></div><div style="margin-top:10px">${o.status==='wait'?`<button class="btn btn-primary" onclick="acceptOrder(${o.id})">Взять заказ</button>`:`<button class="btn btn-accent" onclick="completeOrder(${o.id})">✅ Доставлен</button>`}</div></div>`).join('');
-  }catch(e){c.innerHTML='<div class="empty-state">'+esc(e.message)+'</div>'}
+
+// ─── Курьер ───
+function CourierPanel(props) {
+  const [orders, setOrders] = useState([]);
+  const [filter, setFilter] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [phone, setPhone] = useState(props.phone || '');
+  const [savingPhone, setSavingPhone] = useState(false);
+
+  function load() {
+    setLoading(true);
+    api.courierOrders(filter || undefined).then(setOrders).catch(function(e) { alert(e.message); }).finally(function() { setLoading(false); });
+  }
+  useEffect(load, [filter]);
+
+  function accept(id) {
+    api.courierAccept(id).then(load).catch(function(e) {
+      if (e.message === 'already_taken') alert('Заказ уже взят другим курьером');
+      else alert(e.message);
+    });
+  }
+  function setStatus(id, s) { api.courierSetStatus(id, s).then(load); }
+
+  async function savePhone() {
+    setSavingPhone(true);
+    try { await api.courierSetPhone(phone); alert('Номер сохранён!'); props.onPhoneChange(phone); }
+    catch (e) { alert(e.message); } finally { setSavingPhone(false); }
+  }
+
+  const inputStyle = { width: '100%', padding: 10, border: '1px solid #ddd', borderRadius: 8, fontSize: 15, background: '#fff' };
+
+  return React.createElement('div', null,
+    React.createElement('div', { style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
+      React.createElement('p', { style: { margin: '0 0 8px 0', fontWeight: 600, fontSize: 14 } }, '📱 Мой номер для СБП'),
+      React.createElement('p', { style: { margin: '0 0 8px 0', fontSize: 12, color: '#888' } }, 'Клиент увидит этот номер, чтобы перевести оплату.'),
+      React.createElement('input', { style: inputStyle, value: phone, onChange: function(e) { setPhone(e.target.value); }, placeholder: '+7 999 123-45-67' }),
+      React.createElement('button', { onClick: savePhone, disabled: savingPhone,
+        style: { marginTop: 8, width: '100%', padding: 10, background: '#4C6EF5', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer' }
+      }, savingPhone ? 'Сохранение…' : 'Сохранить номер')
+    ),
+    React.createElement('select', { style: Object.assign({}, inputStyle, { marginBottom: 12 }), value: filter, onChange: function(e) { setFilter(e.target.value); } },
+      React.createElement('option', { value: '' }, 'Все заказы'),
+      Object.keys(STATUSES).map(function(k) { return React.createElement('option', { key: k, value: k }, STATUSES[k].label); })
+    ),
+    loading && React.createElement('p', { style: { color: '#888' } }, 'Загрузка…'),
+    !loading && !orders.length && React.createElement('p', { style: { color: '#888' } }, 'Заказов нет'),
+    orders.map(function(o) {
+      return React.createElement('div', { key: o.id,
+        style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
+        React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', marginBottom: 8 } },
+          React.createElement('b', null, '#' + o.id + ' · ' + (o.task_type === 'pickup' ? 'Забрать' : 'Купить')),
+          React.createElement(StatusBadge, { status: o.status })
+        ),
+        React.createElement('p', { style: { margin: '6px 0' } }, o.description),
+        o.pickup_addr && React.createElement('p', { style: { margin: '4px 0', fontSize: 13, color: '#888' } }, 'Откуда: ' + o.pickup_addr),
+        React.createElement('p', { style: { margin: '4px 0', fontSize: 13, color: '#888' } }, 'Куда: ' + formatAddress(o)),
+        React.createElement('p', { style: { margin: '4px 0', fontSize: 13, color: '#888' } }, 'Зона: ' + ((ZONES[o.zone] || {}).label || '') + ' — ' + o.price + ' ₽'),
+        React.createElement('p', { style: { margin: '4px 0', fontSize: 13, color: '#888' } }, 'Тел: ' + o.phone + ' · ' + (o.customer_name || '—')),
+        o.comment && React.createElement('p', { style: { margin: '4px 0', fontSize: 13, color: '#888' } }, '💬 ' + o.comment),
+        o.courier_name && React.createElement('p', { style: { margin: '4px 0', fontSize: 13, color: '#4C6EF5', fontWeight: 600 } }, 'Взял: ' + o.courier_name),
+        React.createElement('div', { style: { display: 'flex', gap: 8, marginTop: 10 } },
+          o.status === 'new' && React.createElement('button', { onClick: function() { accept(o.id); },
+            style: { flex: 1, padding: 10, background: '#4C6EF5', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer' } }, 'Принять'),
+          o.status === 'accepted' && React.createElement('button', { onClick: function() { setStatus(o.id, 'in_progress'); },
+            style: { flex: 1, padding: 10, background: '#4C6EF5', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer' } }, 'В работу'),
+          o.status === 'in_progress' && React.createElement('button', { onClick: function() { setStatus(o.id, 'done'); },
+            style: { flex: 1, padding: 10, background: '#66BB6A', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer' } }, 'Выполнен'),
+          o.status !== 'done' && o.status !== 'canceled' && React.createElement('button', { onClick: function() { setStatus(o.id, 'canceled'); },
+            style: { flex: 1, padding: 10, background: '#fff', color: '#EF5350', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer' } }, 'Отменить')
+        )
+      );
+    })
+  );
 }
-async function acceptOrder(id){try{await api('/orders/'+id+'/accept',{method:'POST'});await renderCourierFeed();await renderCourierHistory();alert('Заказ #'+id+' взят в работу');}catch(e){alert(e.message)}}
-async function completeOrder(id){try{await api('/orders/'+id+'/complete',{method:'POST'});await renderCourierFeed();await renderCourierHistory();alert('Заказ #'+id+' завершен');}catch(e){alert(e.message)}}
-async function renderCourierHistory(){
-  const c=document.getElementById('courier-done-list');
-  try{
-    const {orders,total}=await api('/orders/courier-done');
-    document.getElementById('courier-earned').textContent=total+' ₽';
-    if(!orders.length){c.innerHTML='<div class="empty-state">Выполненных заказов нет</div>';return}
-    c.innerHTML=orders.map(o=>`<div class="order-card"><div class="order-head"><b>Заказ #${o.id} • ${esc(o.date)}</b><span class="status-badge st-done">+${o.price} ₽</span></div><div class="order-info"><b>Куда:</b> ${esc(o.dest)}</div></div>`).join('');
-  }catch(e){c.innerHTML='<div class="empty-state">'+esc(e.message)+'</div>'}
+
+// ─── Заявка на курьера ───
+function CourierRequest() {
+  const [status, setStatus] = useState('loading');
+  const [sending, setSending] = useState(false);
+
+  function refresh() {
+    api.courierStatus().then(function(r) { setStatus(r.status); }).catch(function() { setStatus('none'); });
+  }
+  useEffect(refresh, []);
+
+  async function request() {
+    setSending(true);
+    try { const r = await api.courierRequest(); setStatus(r.status); alert('Заявка отправлена!'); }
+    catch (e) { alert(e.message); } finally { setSending(false); }
+  }
+
+  if (status === 'loading') return React.createElement('p', { style: { color: '#888' } }, 'Загрузка…');
+  if (status === 'approved') return React.createElement('p', { style: { color: '#66BB6A', fontWeight: 600 } }, '✅ Вы подтверждённый курьер.');
+  if (status === 'pending') return React.createElement('div', null,
+    React.createElement('p', { style: { color: '#FFA726', fontWeight: 600 } }, '⏳ Ваша заявка на рассмотрении.'),
+    React.createElement('p', { style: { color: '#888', fontSize: 13 } }, 'Администратор подтвердит доступ в ближайшее время.')
+  );
+  return React.createElement('div', null,
+    React.createElement('p', { style: { color: '#888', marginBottom: 12 } }, 'Хотите стать курьером? Отправьте заявку.'),
+    React.createElement('button', { onClick: request, disabled: sending,
+      style: { width: '100%', padding: 14, background: '#4C6EF5', color: '#fff', border: 0, borderRadius: 8, fontSize: 16, cursor: 'pointer' }
+    }, sending ? 'Отправка…' : 'Стать курьером')
+  );
 }
-function switchCourierTab(tab){
-  const f=document.getElementById('tab-courier-feed'),h=document.getElementById('tab-courier-history'),b1=document.getElementById('btn-courier-tab1'),b2=document.getElementById('btn-courier-tab2');
-  f.classList.toggle('hidden',tab!=='feed');h.classList.toggle('hidden',tab==='feed');b1.classList.toggle('active',tab==='feed');b2.classList.toggle('active',tab!=='feed');
-  if(tab==='feed')renderCourierFeed();else renderCourierHistory();
+
+// ─── Админ ───
+function AdminPanel() {
+  const [tab, setTab] = useState('requests');
+  const [requests, setRequests] = useState([]);
+  const [couriers, setCouriers] = useState([]);
+  const [stats, setStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  function load() {
+    setLoading(true);
+    Promise.all([api.adminRequests(), api.adminCouriers(), api.adminStats()])
+      .then(function(r) { setRequests(r[0]); setCouriers(r[1]); setStats(r[2]); })
+      .catch(function(e) { alert(e.message); }).finally(function() { setLoading(false); });
+  }
+  useEffect(load, []);
+
+  function approve(id) { api.adminApprove(id).then(load); }
+  function remove(id) { if (confirm('Удалить курьера?')) api.adminRemove(id).then(load); }
+
+  if (loading) return React.createElement('p', { style: { color: '#888' } }, 'Загрузка…');
+
+  return React.createElement('div', null,
+    React.createElement('div', { style: { display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' } },
+      React.createElement(ToggleBtn, { active: tab === 'requests', onClick: function() { setTab('requests'); } }, 'Заявки (' + requests.length + ')'),
+      React.createElement(ToggleBtn, { active: tab === 'couriers', onClick: function() { setTab('couriers'); } }, 'Курьеры (' + couriers.length + ')'),
+      React.createElement(ToggleBtn, { active: tab === 'stats', onClick: function() { setTab('stats'); } }, 'Статистика')
+    ),
+    tab === 'requests' && React.createElement('div', null,
+      !requests.length && React.createElement('p', { style: { color: '#888' } }, 'Новых заявок нет'),
+      requests.map(function(r) {
+        return React.createElement('div', { key: r.user_id,
+          style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
+          React.createElement('p', { style: { margin: '0 0 4px 0', fontWeight: 600 } }, (r.first_name || 'Без имени') + ' (' + r.user_id + ')'),
+          r.username && React.createElement('p', { style: { margin: '0 0 8px 0', fontSize: 13, color: '#888' } }, '@' + r.username),
+          React.createElement('div', { style: { display: 'flex', gap: 8 } },
+            React.createElement('button', { onClick: function() { approve(r.user_id); },
+              style: { flex: 1, padding: 10, background: '#66BB6A', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer' } }, 'Подтвердить'),
+            React.createElement('button', { onClick: function() { remove(r.user_id); },
+              style: { flex: 1, padding: 10, background: '#fff', color: '#EF5350', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer' } }, 'Отклонить')
+          )
+        );
+      })
+    ),
+    tab === 'couriers' && React.createElement('div', null,
+      !couriers.length && React.createElement('p', { style: { color: '#888' } }, 'Курьеров пока нет'),
+      couriers.map(function(c) {
+        return React.createElement('div', { key: c.user_id,
+          style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
+          React.createElement('p', { style: { margin: '0 0 4px 0', fontWeight: 600 } }, (c.first_name || 'Без имени') + ' (' + c.user_id + ')'),
+          c.username && React.createElement('p', { style: { margin: '0 0 4px 0', fontSize: 13, color: '#888' } }, '@' + c.username),
+          React.createElement('p', { style: { margin: '0 0 10px 0', fontSize: 13, color: c.phone ? '#4C6EF5' : '#EF5350' } },
+            c.phone ? '📱 СБП: ' + c.phone : '⚠️ Номер СБП не указан'
+          ),
+          React.createElement('button', { onClick: function() { remove(c.user_id); },
+            style: { width: '100%', padding: 10, background: '#fff', color: '#EF5350', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer' } }, 'Удалить курьера')
+        );
+      })
+    ),
+    tab === 'stats' && React.createElement('div', null,
+      !stats.length && React.createElement('p', { style: { color: '#888' } }, 'Статистики пока нет'),
+      stats.map(function(s) {
+        return React.createElement('div', { key: s.courier_id,
+          style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
+          React.createElement('p', { style: { margin: '0 0 6px 0', fontWeight: 600 } }, s.courier_name || ('ID ' + s.courier_id)),
+          React.createElement('p', { style: { margin: '2px 0', fontSize: 13 } }, 'Всего заказов: ' + s.total),
+          React.createElement('p', { style: { margin: '2px 0', fontSize: 13, color: '#66BB6A' } }, '✅ Выполнено: ' + s.done),
+          React.createElement('p', { style: { margin: '2px 0', fontSize: 13, color: '#EF5350' } }, '❌ Отменено: ' + s.canceled),
+          React.createElement('p', { style: { margin: '6px 0 0 0', fontSize: 14, fontWeight: 700 } }, 'Выручка: ' + s.revenue + ' ₽')
+        );
+      })
+    )
+  );
 }
-function toggleShiftStatus(){
-  const b=document.getElementById('shift-toggle-btn');b.textContent=b.textContent.includes('В сети')?'Смена: На паузе':'Смена: В сети';b.style.color=b.textContent.includes('Пауза')?'var(--warning)':'var(--accent)';
+
+// ─── Главный ───
+function App() {
+  const [tab, setTab] = useState('new');
+  const [me, setMe] = useState(null);
+
+  function reloadMe() {
+    api.me().then(setMe).catch(function() {
+      setMe({ id: 0, is_courier: false, is_admin: false, courier_status: 'none', courier_phone: null });
+    });
+  }
+
+  useEffect(function() {
+    try {
+      if (window.WebApp && typeof window.WebApp.ready === 'function') window.WebApp.ready();
+      if (window.WebApp && typeof window.WebApp.expand === 'function') window.WebApp.expand();
+    } catch (e) {}
+    reloadMe();
+  }, []);
+
+  const isCourier = me && (me.is_courier || me.is_admin);
+  const isAdmin = me && me.is_admin;
+
+  return React.createElement(React.Fragment, null,
+    React.createElement('header', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: '#fff', borderBottom: '1px solid #eee' } },
+      React.createElement('h1', { style: { margin: 0, fontSize: 18 } }, '🚚 Лянтор Доставка'),
+      me && React.createElement('span', { style: { fontSize: 13, color: '#666' } }, me.first_name || 'Гость')
+    ),
+    React.createElement('main', { style: { flex: 1, padding: 16, overflowY: 'auto' } },
+      tab === 'new' && React.createElement(NewOrder, { onDone: function() { setTab('orders'); } }),
+      tab === 'orders' && React.createElement(MyOrders),
+      tab === 'courier' && isCourier && React.createElement(CourierPanel, { phone: me && me.courier_phone, onPhoneChange: function(p) { setMe(Object.assign({}, me, { courier_phone: p })); } }),
+      tab === 'courier-request' && React.createElement(CourierRequest),
+      tab === 'admin' && isAdmin && React.createElement(AdminPanel)
+    ),
+    React.createElement('nav', { style: { display: 'flex', borderTop: '1px solid #eee', background: '#fff', flexWrap: 'wrap' } },
+      React.createElement(NavBtn, { active: tab === 'new', onClick: function() { setTab('new'); } }, 'Новый'),
+      React.createElement(NavBtn, { active: tab === 'orders', onClick: function() { setTab('orders'); } }, 'Мои'),
+      isCourier && React.createElement(NavBtn, { active: tab === 'courier', onClick: function() { setTab('courier'); } }, 'Курьер'),
+      !isCourier && React.createElement(NavBtn, { active: tab === 'courier-request', onClick: function() { setTab('courier-request'); } }, 'Стать курьером'),
+      isAdmin && React.createElement(NavBtn, { active: tab === 'admin', onClick: function() { setTab('admin'); } }, 'Админ')
+    )
+  );
 }
-function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-window.addEventListener('DOMContentLoaded',bootstrap);
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
 </script>
 </body>
 </html>
