@@ -79,9 +79,11 @@ const api = {
   adminRemove:    function(id) { return apiRequest('/api/admin/remove/' + id, { method: 'DELETE' }); },
 };
 
-// ─── Хелпер: форматирование адреса в строку ───
+// ─── Форматирование адреса для карточек ───
 function formatAddress(o) {
-  var parts = [o.delivery_addr];
+  var street = o.delivery_street || '';
+  var house = o.delivery_house || '';
+  var parts = [(street && house ? street + ', ' + house : o.delivery_addr)];
   if (o.delivery_apartment) parts.push('кв. ' + o.delivery_apartment);
   if (o.delivery_entrance) parts.push('под. ' + o.delivery_entrance);
   if (o.delivery_floor) parts.push('эт. ' + o.delivery_floor);
@@ -90,7 +92,9 @@ function formatAddress(o) {
 }
 
 function formatSavedAddress(a) {
-  var parts = [a.address];
+  var street = a.street || '';
+  var house = a.house || '';
+  var parts = [(street && house ? street + ', ' + house : a.address)];
   if (a.apartment) parts.push('кв. ' + a.apartment);
   if (a.entrance) parts.push('под. ' + a.entrance);
   if (a.floor) parts.push('эт. ' + a.floor);
@@ -138,7 +142,8 @@ function StatusBadge(props) {
 function NewOrder(props) {
   const [form, setForm] = useState({
     task_type: 'pickup', description: '', pickup_addr: '',
-    delivery_addr: '', delivery_apartment: '', delivery_entrance: '',
+    delivery_street: '', delivery_house: '',
+    delivery_apartment: '', delivery_entrance: '',
     delivery_floor: '', delivery_intercom: '',
     zone: 'city', phone: '', customer_name: '', comment: '',
   });
@@ -160,7 +165,8 @@ function NewOrder(props) {
     if (!a) return;
     setForm(function(f) {
       return Object.assign({}, f, {
-        delivery_addr: a.address || '',
+        delivery_street: a.street || '',
+        delivery_house: a.house || '',
         delivery_apartment: a.apartment || '',
         delivery_entrance: a.entrance || '',
         delivery_floor: a.floor || '',
@@ -171,8 +177,8 @@ function NewOrder(props) {
   }
 
   async function submit() {
-    if (!form.phone || !form.description || !form.delivery_addr) {
-      alert('Заполните телефон, описание и адрес доставки'); return;
+    if (!form.phone || !form.description || !form.delivery_street || !form.delivery_house) {
+      alert('Заполните телефон, описание, улицу и дом'); return;
     }
     setSending(true);
     try {
@@ -189,11 +195,10 @@ function NewOrder(props) {
     ),
     React.createElement(Field, { label: 'Что нужно сделать' },
       React.createElement('textarea', { style: Object.assign({}, inputStyle, { resize: 'vertical' }), rows: 3, value: form.description,
-        onChange: function(e) { set('description', e.target.value); },
-        placeholder: form.task_type === 'pickup' ? 'Забрать документы из офиса №5' : 'Купить хлеб, молоко 2 л' })
+        onChange: function(e) { set('description', e.target.value); } })
     ),
     form.task_type === 'pickup' && React.createElement(Field, { label: 'Откуда забрать' },
-      React.createElement('input', { style: inputStyle, value: form.pickup_addr, onChange: function(e) { set('pickup_addr', e.target.value); }, placeholder: 'Улица, дом' })
+      React.createElement('input', { style: inputStyle, value: form.pickup_addr, onChange: function(e) { set('pickup_addr', e.target.value); } })
     ),
 
     // ─── Блок адреса доставки ───
@@ -210,40 +215,51 @@ function NewOrder(props) {
       )
     ),
 
-    React.createElement(Field, { label: 'Адрес (улица, дом)' },
-      React.createElement('input', { style: inputStyle, value: form.delivery_addr, onChange: function(e) { set('delivery_addr', e.target.value); }, placeholder: 'Лянтор, ул. Салавата Юлаева, 64' })
-    ),
-
+    // Улица | Дом
     React.createElement('div', { style: { display: 'flex', gap: 8 } },
-      React.createElement('div', { style: { flex: 1 } },
-        React.createElement(Field, { label: 'Кв. или офис' },
-          React.createElement('input', { style: inputStyle, value: form.delivery_apartment, onChange: function(e) { set('delivery_apartment', e.target.value); }, placeholder: '14' })
+      React.createElement('div', { style: { flex: 2 } },
+        React.createElement(Field, { label: 'Улица' },
+          React.createElement('input', { style: inputStyle, value: form.delivery_street, onChange: function(e) { set('delivery_street', e.target.value); } })
         )
       ),
       React.createElement('div', { style: { flex: 1 } },
-        React.createElement(Field, { label: 'Подъезд' },
-          React.createElement('input', { style: inputStyle, value: form.delivery_entrance, onChange: function(e) { set('delivery_entrance', e.target.value); }, placeholder: '2' })
+        React.createElement(Field, { label: 'Дом' },
+          React.createElement('input', { style: inputStyle, value: form.delivery_house, onChange: function(e) { set('delivery_house', e.target.value); } })
         )
       )
     ),
 
+    // Кв. | Подъезд
+    React.createElement('div', { style: { display: 'flex', gap: 8 } },
+      React.createElement('div', { style: { flex: 1 } },
+        React.createElement(Field, { label: 'Кв. или офис' },
+          React.createElement('input', { style: inputStyle, value: form.delivery_apartment, onChange: function(e) { set('delivery_apartment', e.target.value); } })
+        )
+      ),
+      React.createElement('div', { style: { flex: 1 } },
+        React.createElement(Field, { label: 'Подъезд' },
+          React.createElement('input', { style: inputStyle, value: form.delivery_entrance, onChange: function(e) { set('delivery_entrance', e.target.value); } })
+        )
+      )
+    ),
+
+    // Этаж | Домофон
     React.createElement('div', { style: { display: 'flex', gap: 8 } },
       React.createElement('div', { style: { flex: 1 } },
         React.createElement(Field, { label: 'Этаж' },
-          React.createElement('input', { style: inputStyle, value: form.delivery_floor, onChange: function(e) { set('delivery_floor', e.target.value); }, placeholder: '2' })
+          React.createElement('input', { style: inputStyle, value: form.delivery_floor, onChange: function(e) { set('delivery_floor', e.target.value); } })
         )
       ),
       React.createElement('div', { style: { flex: 1 } },
         React.createElement(Field, { label: 'Домофон' },
-          React.createElement('input', { style: inputStyle, value: form.delivery_intercom, onChange: function(e) { set('delivery_intercom', e.target.value); }, placeholder: 'нет / 1234' })
+          React.createElement('input', { style: inputStyle, value: form.delivery_intercom, onChange: function(e) { set('delivery_intercom', e.target.value); } })
         )
       )
     ),
 
     React.createElement(Field, { label: 'Комментарий курьеру' },
       React.createElement('textarea', { style: Object.assign({}, inputStyle, { resize: 'vertical' }), rows: 3, value: form.comment,
-        onChange: function(e) { set('comment', e.target.value); },
-        placeholder: 'Например: 2 микрорайон, 64, звонить за 10 минут' })
+        onChange: function(e) { set('comment', e.target.value); } })
     ),
 
     React.createElement('label', { style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 14, cursor: 'pointer' } },
@@ -260,7 +276,7 @@ function NewOrder(props) {
       React.createElement('input', { style: inputStyle, value: form.customer_name, onChange: function(e) { set('customer_name', e.target.value); } })
     ),
     React.createElement(Field, { label: 'Телефон' },
-      React.createElement('input', { style: inputStyle, type: 'tel', value: form.phone, onChange: function(e) { set('phone', e.target.value); }, placeholder: '+7...' })
+      React.createElement('input', { style: inputStyle, type: 'tel', value: form.phone, onChange: function(e) { set('phone', e.target.value); } })
     ),
     React.createElement('div', { style: { marginTop: 16, fontSize: 18, fontWeight: 700 } }, 'Итого: ' + price + ' ₽ (оплата курьеру)'),
     React.createElement('button', { onClick: submit, disabled: sending,
@@ -348,7 +364,7 @@ function CourierPanel(props) {
     React.createElement('div', { style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
       React.createElement('p', { style: { margin: '0 0 8px 0', fontWeight: 600, fontSize: 14 } }, '📱 Мой номер для СБП'),
       React.createElement('p', { style: { margin: '0 0 8px 0', fontSize: 12, color: '#888' } }, 'Клиент увидит этот номер, чтобы перевести оплату.'),
-      React.createElement('input', { style: inputStyle, value: phone, onChange: function(e) { setPhone(e.target.value); }, placeholder: '+7 999 123-45-67' }),
+      React.createElement('input', { style: inputStyle, value: phone, onChange: function(e) { setPhone(e.target.value); } }),
       React.createElement('button', { onClick: savePhone, disabled: savingPhone,
         style: { marginTop: 8, width: '100%', padding: 10, background: '#4C6EF5', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer' }
       }, savingPhone ? 'Сохранение…' : 'Сохранить номер')
@@ -442,101 +458,4 @@ function AdminPanel() {
   return React.createElement('div', null,
     React.createElement('div', { style: { display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' } },
       React.createElement(ToggleBtn, { active: tab === 'requests', onClick: function() { setTab('requests'); } }, 'Заявки (' + requests.length + ')'),
-      React.createElement(ToggleBtn, { active: tab === 'couriers', onClick: function() { setTab('couriers'); } }, 'Курьеры (' + couriers.length + ')'),
-      React.createElement(ToggleBtn, { active: tab === 'stats', onClick: function() { setTab('stats'); } }, 'Статистика')
-    ),
-    tab === 'requests' && React.createElement('div', null,
-      !requests.length && React.createElement('p', { style: { color: '#888' } }, 'Новых заявок нет'),
-      requests.map(function(r) {
-        return React.createElement('div', { key: r.user_id,
-          style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
-          React.createElement('p', { style: { margin: '0 0 4px 0', fontWeight: 600 } }, (r.first_name || 'Без имени') + ' (' + r.user_id + ')'),
-          r.username && React.createElement('p', { style: { margin: '0 0 8px 0', fontSize: 13, color: '#888' } }, '@' + r.username),
-          React.createElement('div', { style: { display: 'flex', gap: 8 } },
-            React.createElement('button', { onClick: function() { approve(r.user_id); },
-              style: { flex: 1, padding: 10, background: '#66BB6A', color: '#fff', border: 0, borderRadius: 8, cursor: 'pointer' } }, 'Подтвердить'),
-            React.createElement('button', { onClick: function() { remove(r.user_id); },
-              style: { flex: 1, padding: 10, background: '#fff', color: '#EF5350', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer' } }, 'Отклонить')
-          )
-        );
-      })
-    ),
-    tab === 'couriers' && React.createElement('div', null,
-      !couriers.length && React.createElement('p', { style: { color: '#888' } }, 'Курьеров пока нет'),
-      couriers.map(function(c) {
-        return React.createElement('div', { key: c.user_id,
-          style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
-          React.createElement('p', { style: { margin: '0 0 4px 0', fontWeight: 600 } }, (c.first_name || 'Без имени') + ' (' + c.user_id + ')'),
-          c.username && React.createElement('p', { style: { margin: '0 0 4px 0', fontSize: 13, color: '#888' } }, '@' + c.username),
-          React.createElement('p', { style: { margin: '0 0 10px 0', fontSize: 13, color: c.phone ? '#4C6EF5' : '#EF5350' } },
-            c.phone ? '📱 СБП: ' + c.phone : '⚠️ Номер СБП не указан'
-          ),
-          React.createElement('button', { onClick: function() { remove(c.user_id); },
-            style: { width: '100%', padding: 10, background: '#fff', color: '#EF5350', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer' } }, 'Удалить курьера')
-        );
-      })
-    ),
-    tab === 'stats' && React.createElement('div', null,
-      !stats.length && React.createElement('p', { style: { color: '#888' } }, 'Статистики пока нет'),
-      stats.map(function(s) {
-        return React.createElement('div', { key: s.courier_id,
-          style: { background: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,.06)' } },
-          React.createElement('p', { style: { margin: '0 0 6px 0', fontWeight: 600 } }, s.courier_name || ('ID ' + s.courier_id)),
-          React.createElement('p', { style: { margin: '2px 0', fontSize: 13 } }, 'Всего заказов: ' + s.total),
-          React.createElement('p', { style: { margin: '2px 0', fontSize: 13, color: '#66BB6A' } }, '✅ Выполнено: ' + s.done),
-          React.createElement('p', { style: { margin: '2px 0', fontSize: 13, color: '#EF5350' } }, '❌ Отменено: ' + s.canceled),
-          React.createElement('p', { style: { margin: '6px 0 0 0', fontSize: 14, fontWeight: 700 } }, 'Выручка: ' + s.revenue + ' ₽')
-        );
-      })
-    )
-  );
-}
-
-// ─── Главный ───
-function App() {
-  const [tab, setTab] = useState('new');
-  const [me, setMe] = useState(null);
-
-  function reloadMe() {
-    api.me().then(setMe).catch(function() {
-      setMe({ id: 0, is_courier: false, is_admin: false, courier_status: 'none', courier_phone: null });
-    });
-  }
-
-  useEffect(function() {
-    try {
-      if (window.WebApp && typeof window.WebApp.ready === 'function') window.WebApp.ready();
-      if (window.WebApp && typeof window.WebApp.expand === 'function') window.WebApp.expand();
-    } catch (e) {}
-    reloadMe();
-  }, []);
-
-  const isCourier = me && (me.is_courier || me.is_admin);
-  const isAdmin = me && me.is_admin;
-
-  return React.createElement(React.Fragment, null,
-    React.createElement('header', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: '#fff', borderBottom: '1px solid #eee' } },
-      React.createElement('h1', { style: { margin: 0, fontSize: 18 } }, '🚚 Лянтор Доставка'),
-      me && React.createElement('span', { style: { fontSize: 13, color: '#666' } }, me.first_name || 'Гость')
-    ),
-    React.createElement('main', { style: { flex: 1, padding: 16, overflowY: 'auto' } },
-      tab === 'new' && React.createElement(NewOrder, { onDone: function() { setTab('orders'); } }),
-      tab === 'orders' && React.createElement(MyOrders),
-      tab === 'courier' && isCourier && React.createElement(CourierPanel, { phone: me && me.courier_phone, onPhoneChange: function(p) { setMe(Object.assign({}, me, { courier_phone: p })); } }),
-      tab === 'courier-request' && React.createElement(CourierRequest),
-      tab === 'admin' && isAdmin && React.createElement(AdminPanel)
-    ),
-    React.createElement('nav', { style: { display: 'flex', borderTop: '1px solid #eee', background: '#fff', flexWrap: 'wrap' } },
-      React.createElement(NavBtn, { active: tab === 'new', onClick: function() { setTab('new'); } }, 'Новый'),
-      React.createElement(NavBtn, { active: tab === 'orders', onClick: function() { setTab('orders'); } }, 'Мои'),
-      isCourier && React.createElement(NavBtn, { active: tab === 'courier', onClick: function() { setTab('courier'); } }, 'Курьер'),
-      !isCourier && React.createElement(NavBtn, { active: tab === 'courier-request', onClick: function() { setTab('courier-request'); } }, 'Стать курьером'),
-      isAdmin && React.createElement(NavBtn, { active: tab === 'admin', onClick: function() { setTab('admin'); } }, 'Админ')
-    )
-  );
-}
-
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
-</script>
-</body>
-</html>
+      React.createElement(ToggleBtn, { active: tab === 'couriers', onClick: function() { setTab('couriers'); } }, 'Курьеры (' + couriers.length + ')
